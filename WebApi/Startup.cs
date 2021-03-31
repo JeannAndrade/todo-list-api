@@ -37,13 +37,13 @@ namespace WebApi
             services.ConfigureLoggerService();
             services.ConfigureSqlContext(Configuration);
             services.ConfigureRepositoryManager();
+            services.ConfigureFiltersService();
             services.AddAutoMapper(typeof(Startup));
-            services.AddScoped<ValidationFilterAttribute>();
-            services.AddScoped<ValidateTarefaExistsAttribute>();
             services.Configure<ApiBehaviorOptions>(options =>
                 {
                     options.SuppressModelStateInvalidFilter = true;
                 });
+            services.ConfigureVersioning();
 
             services.AddControllers();
         }

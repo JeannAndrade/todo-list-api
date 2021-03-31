@@ -11,6 +11,7 @@ using Entities.RequestFeatures;
 
 namespace WebApi.Controllers
 {
+    [ApiVersion("1.0")]
     [Route("api/tarefas")]
     [ApiController]
     public class TarefaController : ControllerBase
@@ -27,9 +28,12 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [ServiceFilter(typeof(GenerateDefaultCategoriaAttribute))]
         public async Task<IActionResult> GetTarefasAsync([FromQuery] TarefaParameters tarefaParameters)
         {
-            var tarefas = await _repository.Tarefa.GetAllAsync(tarefaParameters, trackChanges: false);
+            var categoria = HttpContext.Items["categoria"] as Categoria;
+
+            var tarefas = await _repository.Tarefa.GetTarefasAsync(categoria.Id, tarefaParameters, trackChanges: false);
 
             var tarefasDto = _mapper.Map<IEnumerable<TarefaDto>>(tarefas);
             return Ok(tarefasDto);
@@ -45,11 +49,14 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(GenerateDefaultCategoriaAttribute))]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateTarefaAsync([FromBody] TarefaForCreationDto tarefa)
         {
+            var categoria = HttpContext.Items["categoria"] as Categoria;
+
             var tarefaEntity = _mapper.Map<Tarefa>(tarefa);
-            _repository.Tarefa.Create(tarefaEntity);
+            _repository.Tarefa.CreateTarefaForCategoria(categoria.Id, tarefaEntity);
             await _repository.SaveAsync();
             var tarefaToReturn = _mapper.Map<TarefaDto>(tarefaEntity);
             return CreatedAtRoute("TarefaById", new { id = tarefaToReturn.Id }, tarefaToReturn);
@@ -60,7 +67,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> DeleteTarefaAsync(Guid id)
         {
             var tarefa = HttpContext.Items["tarefa"] as Tarefa;
-            _repository.Tarefa.Delete(tarefa);
+            _repository.Tarefa.DeleteTarefa(tarefa);
             await _repository.SaveAsync();
 
             return NoContent();

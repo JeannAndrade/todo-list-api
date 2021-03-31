@@ -9,5 +9,6 @@ namespace Entities
         : base(options)
         { }
         public DbSet<Tarefa> Tarefas { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
     }
 }

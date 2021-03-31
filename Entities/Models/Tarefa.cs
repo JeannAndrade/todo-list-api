@@ -12,5 +12,9 @@ namespace Entities.Models
         [MaxLength(150, ErrorMessage = "O tamanho máximo da descrição é 150 caracteres.")]
         public string Descricao { get; set; }
         public bool Finalizada { get; set; }
+
+        [ForeignKey(nameof(Categoria))]
+        public Guid CategoriaId { get; set; }
+        public Categoria Categoria { get; set; }
     }
 }
