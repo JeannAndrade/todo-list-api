@@ -44,9 +44,28 @@ namespace WebApi.Controllers
             return Ok(employeesDto);
         }
 
+        [HttpGet("{id}", Name = "GetTarefaPorCategoria")]
+        public async Task<IActionResult> GetTarefaPorCategoria(Guid categoriaId, Guid id)
+        {
+            var categoria = await _repository.Categoria.GetCategoriaAsync(categoriaId, trackChanges: false);
+            if (categoria == null)
+            {
+                _logger.LogInfo($"Categoria with id: {categoriaId} doesn't exist in the database.");
+                return NotFound();
+            }
+            var tarefaDb = await _repository.Tarefa.GetTarefaAsync(categoriaId, id, trackChanges: false);
+            if (tarefaDb == null)
+            {
+                _logger.LogInfo($"Tarefa with id: {id} doesn't exist in the database.");
+                return NotFound();
+            }
+            var tarefa = _mapper.Map<TarefaDto>(tarefaDb);
+            return Ok(tarefa);
+        }
+
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> CreateEmployeeForCompany(Guid categoriaId, [FromBody] TarefaForCreationDto tarefa)
+        public async Task<IActionResult> CreateTarefaForCategoria(Guid categoriaId, [FromBody] TarefaForCreationDto tarefa)
         {
             var categoria = await _repository.Categoria.GetCategoriaAsync(categoriaId, trackChanges: false);
             if (categoria == null)
@@ -58,15 +77,37 @@ namespace WebApi.Controllers
             _repository.Tarefa.CreateTarefaForCategoria(categoriaId, tarefaEntity);
             await _repository.SaveAsync();
 
-            var employeeToReturn = _mapper.Map<TarefaDto>(tarefaEntity);
+            var tarefaToReturn = _mapper.Map<TarefaDto>(tarefaEntity);
             return CreatedAtRoute(
-                "GetEmployeeForCompany",
+                "GetTarefaPorCategoria",
                  new
                  {
                      categoriaId,
-                     id = employeeToReturn.Id
+                     id = tarefaToReturn.Id
                  },
-                employeeToReturn);
+                tarefaToReturn);
+        }
+
+        [HttpDelete("{id}")]
+        [ServiceFilter(typeof(ValidateTarefaForCategoriaExistsAttribute))]
+        public async Task<IActionResult> DeleteTarefaForCategoria(Guid categoriaId, Guid id)
+        {
+            var tarefaPorCategoria = HttpContext.Items["tarefa"] as Tarefa;
+            _repository.Tarefa.DeleteTarefa(tarefaPorCategoria);
+            await _repository.SaveAsync();
+            return NoContent();
+        }
+
+        [HttpPut("{id}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidateTarefaForCategoriaExistsAttribute))]
+        public async Task<IActionResult> UpdateTarefaForCategoria(Guid categoriaId, Guid id, [FromBody] TarefaForUpdateDto tarefa)
+        {
+            var tarefaEntity = HttpContext.Items["tarefa"] as Tarefa;
+
+            _mapper.Map(tarefa, tarefaEntity);
+            await _repository.SaveAsync();
+            return NoContent();
         }
     }
 }

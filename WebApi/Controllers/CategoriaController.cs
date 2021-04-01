@@ -79,7 +79,7 @@ namespace WebApi.Controllers
         [ServiceFilter(typeof(ValidateCategoriaExistsAttribute))]
         public async Task<IActionResult> UpdateCategoria(Guid id, [FromBody] CategoriaForUpdateDto categoria)
         {
-            var categoriaEntity = HttpContext.Items["company"] as Categoria;
+            var categoriaEntity = HttpContext.Items["categoria"] as Categoria;
             _mapper.Map(categoria, categoriaEntity);
             await _repository.SaveAsync();
             return NoContent();

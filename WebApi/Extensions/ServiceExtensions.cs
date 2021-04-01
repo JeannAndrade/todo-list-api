@@ -42,6 +42,8 @@ namespace WebApi.Extensions
             services.AddScoped<ValidationFilterAttribute>();
             services.AddScoped<ValidateTarefaExistsAttribute>();
             services.AddScoped<GenerateDefaultCategoriaAttribute>();
+            services.AddScoped<ValidateCategoriaExistsAttribute>();
+            services.AddScoped<ValidateTarefaForCategoriaExistsAttribute>();
         }
 
         public static void ConfigureVersioning(this IServiceCollection services)
